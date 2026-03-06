@@ -101,13 +101,17 @@ def limpar_duplicados_real(diretorio_raiz, log_callback):
                     log_callback(f"   ❌ Erro ao remover {duplicata}: {e}")
 
 def main(page: ft.Page):
+    # Detecta se está rodando como desktop
+    platform = getattr(page.platform, "value", str(page.platform))
+    is_desktop = platform in ["desktop", "windows", "macos", "linux"]
     checkbox_nome = ft.Checkbox(label="Remover duplicatas apenas pelo nome (ignorar (1))", value=False)
     page.title = "Remove Duplicatas - Flet"
-    page.window_width = 600
-    page.window_height = 500
+    page.window_width = 375  # Largura típica de celular
+    page.window_height = 700
+    page.window_resizable = True
     # Preenche o campo com o diretório atual do servidor
-    caminho_input = ft.TextField(label="Caminho da pasta", width=400, value=os.getcwd())
-    log_area = ft.TextField(label="Log", multiline=True, read_only=True, width=580, height=300)
+    caminho_input = ft.TextField(label="Caminho da pasta", value=os.getcwd(), expand=True)
+    log_area = ft.TextField(label="Log", multiline=True, read_only=True, expand=True, min_lines=10, max_lines=20)
     running = False
 
     def log_callback(msg):
@@ -119,11 +123,13 @@ def main(page: ft.Page):
             if hasattr(result, "path") and result.path:
                 caminho_input.value = result.path
                 page.update()
-        # Flet web não suporta diálogo nativo, então use um campo de texto manual
-        try:
-            page.get_directory_path(on_result)
-        except Exception:
-            log_callback("Seleção de pasta não suportada neste modo. Digite o caminho manualmente.")
+        if is_desktop:
+            if hasattr(page, "get_directory_path"):
+                page.get_directory_path(on_result)
+            else:
+                log_callback("Seleção de diretório não suportada nesta versão do Flet. Digite o caminho manualmente.")
+        else:
+            log_callback("Seleção de pasta só disponível no modo desktop. Digite o caminho manualmente.")
 
     def executar(e):
         nonlocal running
@@ -145,20 +151,33 @@ def main(page: ft.Page):
         running = False
 
     def cancelar(e):
-        page.window_close()
+        if hasattr(page, "window_close"):
+            page.window_close()
+        elif hasattr(page, "window_destroy"):
+            page.window_destroy()
+        else:
+            log_callback("Fechamento automático não suportado nesta versão. Feche a janela manualmente.")
 
     # Substituir IconButton e icons por um botão de texto simples
+    row_widgets = [caminho_input]
+    if is_desktop:
+        row_widgets.append(ft.ElevatedButton("Selecionar", on_click=escolher_caminho))
+
+    action_buttons = [ft.ElevatedButton("OK", on_click=executar, expand=True)]
+    if is_desktop:
+        action_buttons.append(ft.ElevatedButton("Cancelar", on_click=cancelar, expand=True))
+
     page.add(
-        ft.Row([
-            caminho_input
-        ], alignment="start"),
-        checkbox_nome,
-        ft.Text("Dica: No modo web, digite ou cole manualmente o caminho da pasta desejada. O caminho exibido é o diretório atual do servidor.", size=12, color="grey"),
-        log_area,
-        ft.Row([
-            ft.ElevatedButton("OK", on_click=executar),
-            ft.ElevatedButton("Cancelar", on_click=cancelar)
-        ], alignment="end")
+        ft.Column([
+            ft.Row(row_widgets, alignment="start", expand=True),
+            checkbox_nome,
+            ft.Text(
+                "Dica: No modo desktop, clique em 'Selecionar' para escolher a pasta. No modo web, digite ou cole manualmente o caminho.",
+                size=12, color="grey"
+            ),
+            log_area,
+            ft.Row(action_buttons, alignment="end", expand=True)
+        ], expand=True, horizontal_alignment="center")
     )
 
 if __name__ == "__main__":
