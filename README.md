@@ -75,3 +75,37 @@ uv add pyinstaller
 ```
 
 O executável estará em `dist/main` (Linux/Mac) ou `dist/main.exe` (Windows).
+
+---
+
+## Versão com interface gráfica (Flet)
+
+Também está disponível uma versão com janela gráfica usando a biblioteca Flet.
+
+### Instale a dependência:
+```bash
+uv add flet
+```
+
+### Execute a interface gráfica:
+```bash
+python main_flet.py
+```
+
+Nela, você pode escolher a pasta, visualizar o log do processo e executar ou cancelar a limpeza de duplicatas.
+
+### Dependências obrigatórias para interface gráfica desktop
+Para rodar a interface gráfica como aplicativo de desktop, instale também:
+```bash
+uv add flet-desktop
+uv add flet-web
+```
+Esses pacotes são necessários para o funcionamento local do Flet.
+
+#### Dependência do sistema (Linux)
+Para rodar a interface gráfica desktop no Linux, é necessário instalar a biblioteca nativa libmpv:
+```bash
+sudo apt update
+sudo apt install libmpv-dev
+```
+Sem ela, o Flet Desktop não inicia.
