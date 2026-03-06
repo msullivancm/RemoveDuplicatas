@@ -78,6 +78,20 @@ O executável estará em `dist/main` (Linux/Mac) ou `dist/main.exe` (Windows).
 
 ---
 
+## Como gerar um executável da interface gráfica (Flet)
+
+Para empacotar a versão com interface gráfica (main_flet.py) em um executável único:
+
+```bash
+uv add pyinstaller
+pyinstaller --onefile main_flet.py
+```
+O executável será criado na pasta `dist/`.
+
+> **Observação:** O executável gerado depende das bibliotecas do Flet Desktop e das dependências do sistema (como libmpv). Veja as instruções acima para garantir o funcionamento.
+
+---
+
 ## Versão com interface gráfica (Flet)
 
 Também está disponível uma versão com janela gráfica usando a biblioteca Flet.
