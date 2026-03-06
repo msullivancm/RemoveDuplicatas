@@ -104,6 +104,13 @@ Esses pacotes são necessários para o funcionamento local do Flet.
 
 #### Dependência do sistema (Linux)
 Para rodar a interface gráfica desktop no Linux, é necessário instalar a biblioteca nativa libmpv:
+Se após instalar o pacote libmpv-dev o Flet Desktop ainda não funcionar, crie um link simbólico para a versão correta da biblioteca:
+
+```bash
+sudo ln -s /usr/lib/x86_64-linux-gnu/libmpv.so.2 /usr/lib/x86_64-linux-gnu/libmpv.so.1
+sudo ldconfig
+```
+Esses comandos garantem compatibilidade do Flet Desktop com a biblioteca libmpv.
 ```bash
 sudo apt update
 sudo apt install libmpv-dev
