@@ -14,7 +14,65 @@ def calcular_hash(caminho_arquivo, bloco=65536):
     except:
         return None
 
+def limpar_duplicados_nome(diretorio_raiz, log_callback):
+    arquivos_por_nome = {}
+    log_callback(f"🔍 Analisando arquivos em: {diretorio_raiz} (modo nome)...")
+    for raiz, pastas, arquivos in os.walk(diretorio_raiz):
+        for nome in arquivos:
+            # Remove o (1) do nome, se existir
+            if nome.endswith(').jpg') or nome.endswith(').png') or nome.endswith(').jpeg'):
+                nome_base = nome.replace('(1)', '').replace('  ', ' ')
+            else:
+                nome_base = nome
+            caminho_completo = os.path.join(raiz, nome)
+            if nome_base not in arquivos_por_nome:
+                arquivos_por_nome[nome_base] = []
+            arquivos_por_nome[nome_base].append(caminho_completo)
+    log_callback("\n🚀 Iniciando remoção de duplicatas por nome...")
+    for nome_base, caminhos in arquivos_por_nome.items():
+        if len(caminhos) > 1:
+            caminhos.sort(key=lambda x: ("(1)" in os.path.basename(x), len(os.path.basename(x))))
+            original = caminhos[0]
+            duplicatas = caminhos[1:]
+            log_callback(f"\n✅ Mantendo: {os.path.basename(original)}")
+            for duplicata in duplicatas:
+                try:
+                    os.remove(duplicata)
+                    log_callback(f"   🗑️  Removido: {os.path.basename(duplicata)}")
+                except Exception as e:
+                    log_callback(f"   ❌ Erro ao remover {duplicata}: {e}")
+
+
 def limpar_duplicados_real(diretorio_raiz, log_callback):
+    def limpar_duplicados_nome(diretorio_raiz, log_callback):
+        # Mapeia nomes base para arquivos
+        arquivos_por_nome = {}
+        log_callback(f"🔍 Analisando arquivos em: {diretorio_raiz} (modo nome)...")
+        for raiz, pastas, arquivos in os.walk(diretorio_raiz):
+            for nome in arquivos:
+                # Remove o (1) do nome, se existir
+                if nome.endswith(').jpg') or nome.endswith(').png') or nome.endswith(').jpeg'):
+                    nome_base = nome.replace('(1)', '').replace('  ', ' ')
+                else:
+                    nome_base = nome
+                caminho_completo = os.path.join(raiz, nome)
+                if nome_base not in arquivos_por_nome:
+                    arquivos_por_nome[nome_base] = []
+                arquivos_por_nome[nome_base].append(caminho_completo)
+        log_callback("\n🚀 Iniciando remoção de duplicatas por nome...")
+        for nome_base, caminhos in arquivos_por_nome.items():
+            if len(caminhos) > 1:
+                # Mantém o arquivo sem (1) no nome, se existir
+                caminhos.sort(key=lambda x: ("(1)" in os.path.basename(x), len(os.path.basename(x))))
+                original = caminhos[0]
+                duplicatas = caminhos[1:]
+                log_callback(f"\n✅ Mantendo: {os.path.basename(original)}")
+                for duplicata in duplicatas:
+                    try:
+                        os.remove(duplicata)
+                        log_callback(f"   🗑️  Removido: {os.path.basename(duplicata)}")
+                    except Exception as e:
+                        log_callback(f"   ❌ Erro ao remover {duplicata}: {e}")
     arquivos_por_conteudo = {}
     log_callback(f"🔍 Analisando arquivos em: {diretorio_raiz}...")
     for raiz, pastas, arquivos in os.walk(diretorio_raiz):
@@ -43,6 +101,7 @@ def limpar_duplicados_real(diretorio_raiz, log_callback):
                     log_callback(f"   ❌ Erro ao remover {duplicata}: {e}")
 
 def main(page: ft.Page):
+    checkbox_nome = ft.Checkbox(label="Remover duplicatas apenas pelo nome (ignorar (1))", value=False)
     page.title = "Remove Duplicatas - Flet"
     page.window_width = 600
     page.window_height = 500
@@ -78,7 +137,10 @@ def main(page: ft.Page):
             log_callback("Caminho inválido.")
             running = False
             return
-        limpar_duplicados_real(caminho, log_callback)
+        if checkbox_nome.value:
+            limpar_duplicados_nome(caminho, log_callback)
+        else:
+            limpar_duplicados_real(caminho, log_callback)
         log_callback("\n✨ Limpeza profunda concluída!")
         running = False
 
@@ -90,6 +152,7 @@ def main(page: ft.Page):
         ft.Row([
             caminho_input
         ], alignment="start"),
+        checkbox_nome,
         ft.Text("Dica: No modo web, digite ou cole manualmente o caminho da pasta desejada. O caminho exibido é o diretório atual do servidor.", size=12, color="grey"),
         log_area,
         ft.Row([
