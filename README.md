@@ -58,6 +58,14 @@ uv add pyinstaller
 ```
 O executável será criado na pasta `dist/`.
 
+> ⚠️ **Atenção:** O empacotamento de aplicações Flet Desktop com PyInstaller pode não funcionar corretamente em todas as distribuições Linux devido a dependências nativas (como libncursesw, libmpv, etc). O método mais confiável é rodar o script `main_flet.py` diretamente no ambiente Python/Flet:
+
+```bash
+source .venv/bin/activate
+python main_flet.py
+```
+Se necessário, consulte as instruções de pré-requisitos para garantir que todas as bibliotecas do sistema estejam instaladas.
+
 ### 3. Executando em outros sistemas operacionais
 
 - **Linux:** O comando acima já gera um executável para Linux.
